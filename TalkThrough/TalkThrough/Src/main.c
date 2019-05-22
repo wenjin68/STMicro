@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "pdm_filter.h"
+#include "stm32f4_discovery_audio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +53,7 @@ DMA_HandleTypeDef hdma_spi3_tx;
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
-PDMFilter_InitStruct PDMFilter;
+//PDMFilter_InitStruct PDMFilter;
 #define NUM_ELEMS(a)	(sizeof(a)/sizeof(a[0]))
 
 
@@ -111,22 +111,24 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-//  MX_I2C1_Init();
+  MX_I2C1_Init();
   MX_I2S3_Init();
-//  MX_SPI1_Init();
-//  MX_USB_HOST_Init();
+  MX_SPI1_Init();
+  MX_USB_HOST_Init();
   MX_I2S2_Init();
   /* USER CODE BEGIN 2 */
-  PDMFilter.LP_HZ = I2S_AUDIOFREQ_48K/2;
-  PDMFilter.HP_HZ = 10;
-  PDMFilter.Fs = I2S_AUDIOFREQ_48K;
-  PDMFilter.In_MicChannels = 1;
-  PDMFilter.Out_MicChannels = 1;
+//  PDMFilter.LP_HZ = I2S_AUDIOFREQ_48K/2;
+//  PDMFilter.HP_HZ = 10;
+//  PDMFilter.Fs = I2S_AUDIOFREQ_48K;
+//  PDMFilter.In_MicChannels = 1;
+//  PDMFilter.Out_MicChannels = 1;
 //  PDM_Filter_Init(&PDMFilter);
 
-  memset(&PDM_Buffer[0], 0, sizeof(PDM_Buffer));
+  //memset(&PDM_Buffer[0], 0, sizeof(PDM_Buffer));
 
-  HAL_I2S_Receive_DMA(&hi2s2, &PDM_Buffer[0], 10 );
+  BSP_AUDIO_IN_Init(I2S_AUDIOFREQ_48K, 16, 1);
+  BSP_AUDIO_IN_Record(&PDM_Buffer[0], 10);
+  //HAL_I2S_Receive_DMA(&hi2s2, &PDM_Buffer[0], 10 );
   //HAL_I2S_Transmit_DMA(&hi2s3, );
 
   /* USER CODE END 2 */
@@ -143,13 +145,13 @@ int main(void)
   /* USER CODE END 3 */
 }
 
-void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
-{
-}
-
-void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
-{
-}
+//void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+//{
+//}
+//
+//void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
+//{
+//}
 
 
 
