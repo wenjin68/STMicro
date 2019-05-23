@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stm32f4_discovery_audio.h"
+#include "../Middlewares/ST/STM32_Audio/Addons/PDM/pdm_filter.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +53,7 @@ DMA_HandleTypeDef hdma_spi3_tx;
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
-//PDMFilter_InitStruct PDMFilter;
+PDMFilter_InitStruct PDMFilter;
 #define NUM_ELEMS(a)	(sizeof(a)/sizeof(a[0]))
 
 
@@ -78,6 +78,31 @@ void MX_USB_HOST_Process(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/**
+  * @brief  Initialize the PDM library.
+  * @param  AudioFreq: Audio sampling frequency
+  * @param  ChnlNbr: Number of audio channels (1: mono; 2: stereo)
+  * @retval None
+  */
+static void PDMDecoder_Init(uint32_t AudioFreq)
+{
+
+  /* Enable CRC peripheral to unlock the PDM library */
+  __CRC_CLK_ENABLE();
+
+  //for(i = 0; i < ChnlNbr; i++)
+  {
+    /* Filter LP and HP Init */
+    PDMFilter.LP_HZ = AudioFreq / 2;
+    PDMFilter.HP_HZ = 10;
+    PDMFilter.Fs = AudioFreq;
+    /* On STM32F4-Discovery a single microphone is mounted, samples are duplicated
+       to make stereo audio streams */
+    PDMFilter.Out_MicChannels = 2;
+    PDMFilter.In_MicChannels = 1;
+    PDM_Filter_Init((PDMFilter_InitStruct *)&PDMFilter);
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -106,6 +131,9 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  /* Configure the PDM library */
+  PDMDecoder_Init(I2S_AUDIOFREQ_48K);
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -117,18 +145,10 @@ int main(void)
   MX_USB_HOST_Init();
   MX_I2S2_Init();
   /* USER CODE BEGIN 2 */
-//  PDMFilter.LP_HZ = I2S_AUDIOFREQ_48K/2;
-//  PDMFilter.HP_HZ = 10;
-//  PDMFilter.Fs = I2S_AUDIOFREQ_48K;
-//  PDMFilter.In_MicChannels = 1;
-//  PDMFilter.Out_MicChannels = 1;
-//  PDM_Filter_Init(&PDMFilter);
 
   //memset(&PDM_Buffer[0], 0, sizeof(PDM_Buffer));
 
-  BSP_AUDIO_IN_Init(I2S_AUDIOFREQ_48K, 16, 1);
-  BSP_AUDIO_IN_Record(&PDM_Buffer[0], 10);
-  //HAL_I2S_Receive_DMA(&hi2s2, &PDM_Buffer[0], 10 );
+  HAL_I2S_Receive_DMA(&hi2s2, &PDM_Buffer[0], 10 );
   //HAL_I2S_Transmit_DMA(&hi2s3, );
 
   /* USER CODE END 2 */
@@ -144,16 +164,6 @@ int main(void)
   }
   /* USER CODE END 3 */
 }
-
-//void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
-//{
-//}
-//
-//void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
-//{
-//}
-
-
 
 /**
   * @brief System Clock Configuration
@@ -254,20 +264,45 @@ static void MX_I2S2_Init(void)
   /* USER CODE BEGIN I2S2_Init 1 */
 
   /* USER CODE END I2S2_Init 1 */
-  hi2s2.Instance = SPI2;
-  hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B;
-  hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
-  hi2s2.Init.CPOL = I2S_CPOL_LOW;
-  hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  //hi2s2.Instance = SPI2;
+  //hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
+  //hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
+  //hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B;
+  //hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  //hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
+  //hi2s2.Init.CPOL = I2S_CPOL_LOW;
+  //hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
+  //hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  //if (HAL_I2S_Init(&hi2s2) != HAL_OK)
+  //{
+  //  Error_Handler();
+  //}
+  /* USER CODE BEGIN I2S2_Init 2 */
+  /* Initialize the hAudioInI2s Instance parameter */
+  hi2s2.Instance          = SPI2;
+
+  /* Disable I2S block */
+  __HAL_I2S_DISABLE(&hi2s2);
+
+  /* I2S2 peripheral configuration */
+  hi2s2.Init.Mode         = I2S_MODE_MASTER_RX;
+  hi2s2.Init.Standard     = I2S_STANDARD_LSB;
+  hi2s2.Init.DataFormat   = I2S_DATAFORMAT_16B;
+  hi2s2.Init.MCLKOutput   = I2S_MCLKOUTPUT_DISABLE;
+  hi2s2.Init.AudioFreq    = 2 * I2S_AUDIOFREQ_48K;
+  hi2s2.Init.CPOL         = I2S_CPOL_HIGH;
+  hi2s2.Init.ClockSource  = I2S_CLOCK_PLL;
+
+  /* Initialize the I2S peripheral with the structure above */
+  if(HAL_I2S_GetState(&hi2s2) == HAL_I2S_STATE_RESET)
+  {
+    I2S2_MspInit();
+  }
+
   if (HAL_I2S_Init(&hi2s2) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2S2_Init 2 */
 
   /* USER CODE END I2S2_Init 2 */
 
@@ -440,6 +475,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief  Rx Transfer completed callbacks
+  * @param  hi2s: I2S handle
+  * @retval None
+  */
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+  /* Call the record update function to get the next buffer to fill and its size (size is ignored) */
+  //BSP_AUDIO_IN_TransferComplete_CallBack();
+}
+
+/**
+  * @brief  Rx Half Transfer completed callbacks.
+  * @param  hi2s: I2S handle
+  * @retval None
+  */
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+  /* Manage the remaining file size and new address offset: This function
+     should be coded by user (its prototype is already declared in stm32f4_discovery_audio.h) */
+  //BSP_AUDIO_IN_HalfTransfer_CallBack();
+}
+
 
 /* USER CODE END 4 */
 

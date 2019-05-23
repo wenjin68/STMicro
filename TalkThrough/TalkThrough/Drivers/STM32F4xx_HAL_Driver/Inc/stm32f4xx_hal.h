@@ -272,7 +272,7 @@ void HAL_DisableMemorySwappingBank(void);
 /**
   * @}
   */
-
+void I2S2_MspInit(void);
 /**
   * @}
   */ 
