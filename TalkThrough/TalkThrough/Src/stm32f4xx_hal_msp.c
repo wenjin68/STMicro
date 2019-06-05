@@ -59,66 +59,66 @@ extern I2S_HandleTypeDef hi2s2;
 /* USER CODE END ExternalFunctions */
 
 /* USER CODE BEGIN 0 */
-void I2S2_MspInit(void)
-{
-  static DMA_HandleTypeDef hdma_i2sRx;
-  GPIO_InitTypeDef  GPIO_InitStruct;
-  I2S_HandleTypeDef *hi2s = &hi2s2;
-
-  /* Enable the I2S2 peripheral clock */
-  __SPI2_CLK_ENABLE(); //I2S2_CLK_ENABLE();
-
-  /* Enable I2S GPIO clocks */
-  __GPIOB_CLK_ENABLE(); //I2S2_SCK_GPIO_CLK_ENABLE();
-  __GPIOC_CLK_ENABLE(); //I2S2_MOSI_GPIO_CLK_ENABLE();
-
-  /* I2S2 pins configuration: SCK and MOSI pins ------------------------------*/
-  GPIO_InitStruct.Pin       = GPIO_PIN_10; //I2S2_SCK_PIN;
-  GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull      = GPIO_NOPULL;
-  GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
-  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2; //I2S2_SCK_AF;
-  HAL_GPIO_Init(/*I2S2_SCK_GPIO_PORT*/GPIOB, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin       = GPIO_PIN_3; //I2S2_MOSI_PIN ;
-  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2; //I2S2_MOSI_AF;
-  HAL_GPIO_Init(/*I2S2_MOSI_GPIO_PORT*/GPIOC, &GPIO_InitStruct);
-
-  /* Enable the DMA clock */
-  __DMA1_CLK_ENABLE(); //I2S2_DMAx_CLK_ENABLE();
-
-  if(hi2s->Instance == SPI2)
-  {
-    /* Configure the hdma_i2sRx handle parameters */
-    hdma_i2sRx.Init.Channel             = DMA_CHANNEL_0; //I2S2_DMAx_CHANNEL;
-    hdma_i2sRx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
-    hdma_i2sRx.Init.PeriphInc           = DMA_PINC_DISABLE;
-    hdma_i2sRx.Init.MemInc              = DMA_MINC_ENABLE;
-    hdma_i2sRx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD; //I2S2_DMAx_PERIPH_DATA_SIZE;
-    hdma_i2sRx.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD; //I2S2_DMAx_MEM_DATA_SIZE;
-    hdma_i2sRx.Init.Mode                = DMA_CIRCULAR;
-    hdma_i2sRx.Init.Priority            = DMA_PRIORITY_HIGH;
-    hdma_i2sRx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-    hdma_i2sRx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
-    hdma_i2sRx.Init.MemBurst            = DMA_MBURST_SINGLE;
-    hdma_i2sRx.Init.PeriphBurst         = DMA_MBURST_SINGLE;
-
-    hdma_i2sRx.Instance = DMA1_Stream3; //I2S2_DMAx_STREAM;
-
-    /* Associate the DMA handle */
-    __HAL_LINKDMA(hi2s, hdmarx, hdma_i2sRx);
-
-    /* Deinitialize the Stream for new transfer */
-    HAL_DMA_DeInit(&hdma_i2sRx);
-
-    /* Configure the DMA Stream */
-    HAL_DMA_Init(&hdma_i2sRx);
-  }
-
-  /* I2S DMA IRQ Channel configuration */
-  HAL_NVIC_SetPriority(/*I2S2_DMAx_IRQ*/DMA1_Stream3_IRQn, /*AUDIO_IN_IRQ_PREPRIO*/6, 0);
-  HAL_NVIC_EnableIRQ(/*I2S2_DMAx_IRQ*/DMA1_Stream3_IRQn);
-}
+//void I2S2_MspInit(void)
+//{
+//  static DMA_HandleTypeDef hdma_i2sRx;
+//  GPIO_InitTypeDef  GPIO_InitStruct;
+//  I2S_HandleTypeDef *hi2s = &hi2s2;
+//
+//  /* Enable the I2S2 peripheral clock */
+//  __SPI2_CLK_ENABLE(); //I2S2_CLK_ENABLE();
+//
+//  /* Enable I2S GPIO clocks */
+//  __GPIOB_CLK_ENABLE(); //I2S2_SCK_GPIO_CLK_ENABLE();
+//  __GPIOC_CLK_ENABLE(); //I2S2_MOSI_GPIO_CLK_ENABLE();
+//
+//  /* I2S2 pins configuration: SCK and MOSI pins ------------------------------*/
+//  GPIO_InitStruct.Pin       = GPIO_PIN_10; //I2S2_SCK_PIN;
+//  GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+//  GPIO_InitStruct.Pull      = GPIO_NOPULL;
+//  GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
+//  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2; //I2S2_SCK_AF;
+//  HAL_GPIO_Init(/*I2S2_SCK_GPIO_PORT*/GPIOB, &GPIO_InitStruct);
+//
+//  GPIO_InitStruct.Pin       = GPIO_PIN_3; //I2S2_MOSI_PIN ;
+//  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2; //I2S2_MOSI_AF;
+//  HAL_GPIO_Init(/*I2S2_MOSI_GPIO_PORT*/GPIOC, &GPIO_InitStruct);
+//
+//  /* Enable the DMA clock */
+//  __DMA1_CLK_ENABLE(); //I2S2_DMAx_CLK_ENABLE();
+//
+//  if(hi2s->Instance == SPI2)
+//  {
+//    /* Configure the hdma_i2sRx handle parameters */
+//    hdma_i2sRx.Init.Channel             = DMA_CHANNEL_0; //I2S2_DMAx_CHANNEL;
+//    hdma_i2sRx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+//    hdma_i2sRx.Init.PeriphInc           = DMA_PINC_DISABLE;
+//    hdma_i2sRx.Init.MemInc              = DMA_MINC_ENABLE;
+//    hdma_i2sRx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD; //I2S2_DMAx_PERIPH_DATA_SIZE;
+//    hdma_i2sRx.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD; //I2S2_DMAx_MEM_DATA_SIZE;
+//    hdma_i2sRx.Init.Mode                = DMA_CIRCULAR;
+//    hdma_i2sRx.Init.Priority            = DMA_PRIORITY_HIGH;
+//    hdma_i2sRx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+//    hdma_i2sRx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
+//    hdma_i2sRx.Init.MemBurst            = DMA_MBURST_SINGLE;
+//    hdma_i2sRx.Init.PeriphBurst         = DMA_MBURST_SINGLE;
+//
+//    hdma_i2sRx.Instance = DMA1_Stream3; //I2S2_DMAx_STREAM;
+//
+//    /* Associate the DMA handle */
+//    __HAL_LINKDMA(hi2s, hdmarx, hdma_i2sRx);
+//
+//    /* Deinitialize the Stream for new transfer */
+//    HAL_DMA_DeInit(&hdma_i2sRx);
+//
+//    /* Configure the DMA Stream */
+//    HAL_DMA_Init(&hdma_i2sRx);
+//  }
+//
+//  /* I2S DMA IRQ Channel configuration */
+//  HAL_NVIC_SetPriority(/*I2S2_DMAx_IRQ*/DMA1_Stream3_IRQn, /*AUDIO_IN_IRQ_PREPRIO*/6, 0);
+//  HAL_NVIC_EnableIRQ(/*I2S2_DMAx_IRQ*/DMA1_Stream3_IRQn);
+//}
 
 /* USER CODE END 0 */
 /**
@@ -269,11 +269,19 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* hi2s)
     hdma_spi2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_spi2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_spi2_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_spi2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_spi2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_spi2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD; /*DMA_PDATAALIGN_WORD;*/ /* halfword is used in stm32f4_discovery_audio.c */
+    hdma_spi2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD; /*DMA_MDATAALIGN_WORD;*/ /* halfword is used in stm32f4_discovery_audio.c */
     hdma_spi2_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_spi2_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_spi2_rx.Init.Priority = DMA_PRIORITY_HIGH; /*DMA_PRIORITY_LOW;*/ /* high priority is used in stm32f4_discovery_audio.c */
     hdma_spi2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    /* The following 3 settings are copied from stm32f4_discovery_audio.c */
+    hdma_spi2_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+    hdma_spi2_rx.Init.MemBurst      = DMA_MBURST_SINGLE;
+    hdma_spi2_rx.Init.PeriphBurst   = DMA_MBURST_SINGLE;
+
+    /* Deinitialize the Stream for new transfer, copied from  stm32f4_discovery_audio.c*/
+    HAL_DMA_DeInit(&hdma_spi2_rx);
+
     if (HAL_DMA_Init(&hdma_spi2_rx) != HAL_OK)
     {
       Error_Handler();

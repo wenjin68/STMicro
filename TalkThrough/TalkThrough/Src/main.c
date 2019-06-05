@@ -34,6 +34,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define NUM_ELEMS(a)	(sizeof(a)/sizeof(a[0]))
+#define PDM_BUFF_SIZE        (64*2*2)   /*Both Left and Right * Double Buffer*/
+#define PCM_OUT_SIZE        (32)
 
 /* USER CODE END PD */
 
@@ -54,11 +57,9 @@ SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
 PDMFilter_InitStruct PDMFilter;
-#define NUM_ELEMS(a)	(sizeof(a)/sizeof(a[0]))
-
-
-#define PDM_BUFFER_SIZE_SAMPLES		(64)
-uint16_t	PDM_Buffer[PDM_BUFFER_SIZE_SAMPLES * 2 * 2];	// Both Left and Right * Double Buffer
+__IO uint16_t AudioInVolume = 64;
+static uint16_t    PDM_Buffer[PDM_BUFF_SIZE];
+static uint16_t    MicPCMBuf[PCM_OUT_SIZE*2];
 
 /* USER CODE END PV */
 
@@ -104,6 +105,31 @@ static void PDMDecoder_Init(uint32_t AudioFreq)
   }
 }
 
+uint8_t BSP_AUDIO_IN_PDMToPCM(uint16_t *PDMBuf, uint16_t *PCMBuf)
+{
+  uint16_t AppPDM[PDM_BUFF_SIZE/2];
+  uint32_t index = 0;
+
+  /* PDM Demux */
+  for(index = 0; index<PDM_BUFF_SIZE/2; index++)
+  {
+    AppPDM[index] = HTONS(PDMBuf[index]);
+  }
+
+  //for(index = 0; index < DEFAULT_AUDIO_IN_CHANNEL_NBR; index++)
+  {
+    /* PDM to PCM filter */
+    PDM_Filter_64_LSB((uint8_t*)&AppPDM[0], (uint16_t*)&(PCMBuf[0]), AudioInVolume , (PDMFilter_InitStruct *)&PDMFilter);
+  }
+  /* Duplicate samples since a single microphone in mounted on STM32F4-Discovery */
+  for(index = 0; index < PCM_OUT_SIZE; index++)
+  {
+    PCMBuf[(index<<1)+1] = PCMBuf[index<<1];
+  }
+
+  /* Return AUDIO_OK when all operations are correctly done */
+  return 0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -296,7 +322,7 @@ static void MX_I2S2_Init(void)
   /* Initialize the I2S peripheral with the structure above */
   if(HAL_I2S_GetState(&hi2s2) == HAL_I2S_STATE_RESET)
   {
-    I2S2_MspInit();
+    HAL_I2S_MspInit(&hi2s2);
   }
 
   if (HAL_I2S_Init(&hi2s2) != HAL_OK)
